@@ -1,0 +1,26 @@
+from launch.actions import SetEnvironmentVariable
+from launch import LaunchDescription
+from launch.actions import IncludeLaunchDescription
+from launch_ros.actions import Node
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import ThisLaunchFileDir
+from launch.substitutions import PathJoinSubstitution
+from launch_ros.substitutions import FindPackageShare
+import os
+
+
+from ament_index_python.packages import get_package_share_directory
+
+def generate_launch_description():    
+    camera_launch_dir = os.path.join(get_package_share_directory('gstreamer_camera_wrapper'), 'launch')
+
+    return LaunchDescription([
+        
+        SetEnvironmentVariable(name='ROS_LOG_DIR', value='/tmp/ros_logs'),
+
+        # GStreamer 카메라 수신 노드
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(os.path.join(camera_launch_dir, 'gstreamer_camera.launch.py')),
+        )
+    ])
+

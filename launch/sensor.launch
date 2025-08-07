@@ -1,0 +1,32 @@
+<launch>
+    <!-- lidar driver -->
+     <include file="$(find ouster_ros)/launch/driver.launch">
+        <arg name="ouster_ns" value="hrz" />
+        <arg name="tf_prefix" value="hrz" />
+        <arg name="viz" value="false" />
+        <arg name="sensor_hostname" value="169.254.150.218" />
+        <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME" />
+        <arg name="lidar_mode" value="1024x10" />
+    </include>
+
+    <!-- lidar driver -->
+    <include file="$(find ouster_ros)/launch/driver.launch">
+        <arg name="ouster_ns" value="vrt" />
+        <arg name="tf_prefix" value="vrt" />
+        <arg name="viz" value="false" />
+        <arg name="sensor_hostname" value="169.254.186.89" />
+        <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME" />
+        <arg name="lidar_mode" value="1024x10" />
+        <arg name="lidar_port" value="7504" />
+        <arg name="imu_port" value="7505" />
+        <arg name="pub_static_tf" value="false" />
+    </include>
+
+    <!-- imu driver -->
+     <include file="$(find microstrain_inertial_driver)/launch/microstrain.launch">
+        <arg name="params_file" value="$(find microstrain_inertial_examples)/config/cv7/cv7.yml" />
+     </include>
+    
+    <!-- camera -->
+    <include file="$(find gstreamer_camera_wrapper)/launch/gstreamer_camera.launch" />
+</launch>
