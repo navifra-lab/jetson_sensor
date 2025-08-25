@@ -112,3 +112,8 @@ if(MICROSTRAIN_ENABLE_SERIAL)
     add_mip_example(CX5_GX5_CV5_15_25_ExampleC "${EXAMPLE_DIR}/CX5_GX5_CV5_15_25/CX5_GX5_CV5_15_25_example.c")
 
 endif()
+
+# Force C++17 for log4cxx compatibility
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)

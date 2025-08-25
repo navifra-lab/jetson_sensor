@@ -33,3 +33,8 @@ set(MICROSTRAIN_LIBRARIES_TMP ${MICROSTRAIN_LIBRARIES_TMP} ${MICROSTRAIN_SERIAL_
 
 include(microstrain_utilities)
 microstrain_setup_library_install(${MICROSTRAIN_SERIAL_LIBRARY} ${MICROSTRAIN_SRC_DIR})
+
+# Force C++17 for log4cxx compatibility
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)

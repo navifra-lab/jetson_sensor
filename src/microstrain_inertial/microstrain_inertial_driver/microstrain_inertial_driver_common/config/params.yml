@@ -122,7 +122,7 @@ mount_to_frame_id_transform          : [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0] # [ x
 # Note: It is strongly recommended to leave this as True if you plan to integrate with other ROS tools
 # Note: If this is set to false, all "*_frame_id" variables will have "_ned" appended to them by the driver.
 # For more information, see: https://wiki.ros.org/microstrain_inertial_driver/use_enu_frame
-use_enu_frame : false
+use_enu_frame : False
 
 
 # ****************************************************************** 
@@ -453,7 +453,7 @@ pressure_low_pass_filter_frequency : 1
 
 # The speed at which the individual IMU publishers will publish at.
 imu_data_raw_rate         : 1    # Rate of imu/data_raw topic
-imu_data_rate             : 250  # Rate of imu/data topic
+imu_data_rate             : 500  # Rate of imu/data topic
 imu_mag_data_rate         : 0    # Rate of imu/mag topic
 imu_pressure_data_rate    : 0    # Rate of imu/pressure topic
 imu_wheel_speed_data_rate : 0    # Rate of imu/wheel_Speed topic

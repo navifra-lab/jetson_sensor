@@ -4,11 +4,8 @@ Changelog for package microstrain_inertial_examples
 
 4.7.0 (2025-06-05)
 ------------------
-* Adds support for CV7-GNSS-INS (`#389 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/389>`_)
+* Adds support for CV7-GNSS-INS (`#388 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/388>`_)
 * Contributors: Rob
-
-4.6.1 (2025-04-25)
-------------------
 
 4.6.0 (2025-04-15)
 ------------------
@@ -25,6 +22,8 @@ Changelog for package microstrain_inertial_examples
 
 4.3.0 (2024-05-15)
 ------------------
+* Updates CV7 INS example yaml (`#331 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/331>`_)
+* Contributors: Rob
 
 4.2.0 (2024-04-04)
 ------------------
@@ -37,7 +36,7 @@ Changelog for package microstrain_inertial_examples
 
 4.0.0 (2024-01-26)
 ------------------
-* ROS2 Standardize and update to work better with ROS standard tools (`#295 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/295>`_)
+* ROS Standardize and update to work better with ROS standard tools (`#294 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/294>`_)
 * Contributors: Rob
 
 3.2.1 (2024-01-26)
@@ -70,10 +69,16 @@ Changelog for package microstrain_inertial_examples
 2.5.0 (2022-01-27)
 ------------------
 
+2.4.1 (2022-01-06)
+------------------
+
 2.4.0 (2022-01-05)
 ------------------
 
 2.3.0 (2021-12-22)
+------------------
+
+2.2.1 (2021-12-09)
 ------------------
 
 2.2.0 (2021-12-03)
@@ -82,16 +87,31 @@ Changelog for package microstrain_inertial_examples
 2.1.0 (2021-11-12)
 ------------------
 
-2.0.6 (2021-10-22)
+2.0.5 (2021-10-19)
 ------------------
-* Fixes CMake build errors experienced on the build farm
-* Contributors: Rob Fisher, robbiefish
 
-2.0.5 (2021-10-21)
+2.0.4 (2021-09-08)
 ------------------
-* Updates maintainers and dependencies in preparation for ROS build farm
-* Renames packages to be more consistent with ROS naming conventions
-* Contributors: Rob Fisher, robbiefish
+* Upgrade CMake version and removes unused include in examples
+* Contributors: robbiefish
+
+2.0.3 (2021-09-08)
+------------------
+* Fixes missing dependencies in example and checks gcc directly for architecture
+* Contributors: robbiefish
+
+2.0.2 (2021-08-30)
+------------------
+* Fixes cmake warnings and updates maintainers
+* Contributors: robbiefish
+
+2.0.1 (2021-08-24)
+------------------
+
+2.0.0 (2021-08-24)
+------------------
+* Consolidates examples to single package
+* Contributors: Rob Fisher
 
 1.1.4 (2021-07-30)
 ------------------

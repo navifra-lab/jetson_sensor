@@ -22,3 +22,8 @@ add_mip_test(
     SOURCES "${CMAKE_CURRENT_LIST_DIR}/test_mip_random.c"
     COMMAND TestMipRandom
 )
+
+# Force C++17 for log4cxx compatibility
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)

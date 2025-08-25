@@ -5,9 +5,6 @@ Changelog for package microstrain_inertial_rqt
 4.7.0 (2025-06-05)
 ------------------
 
-4.6.1 (2025-04-25)
-------------------
-
 4.6.0 (2025-04-15)
 ------------------
 
@@ -31,7 +28,7 @@ Changelog for package microstrain_inertial_rqt
 
 4.0.0 (2024-01-26)
 ------------------
-* ROS2 Standardize and update to work better with ROS standard tools (`#295 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/295>`_)
+* ROS Standardize and update to work better with ROS standard tools (`#294 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/294>`_)
 * Contributors: Rob
 
 3.2.1 (2024-01-26)
@@ -69,6 +66,9 @@ Changelog for package microstrain_inertial_rqt
   * Changed quickview default namespace from gx5 to 'empty'
 * Fixed submodule initialization
 * Contributors: dacuster, robbiefish
+
+2.4.1 (2022-01-06)
+------------------
 
 2.4.0 (2022-01-05)
 ------------------

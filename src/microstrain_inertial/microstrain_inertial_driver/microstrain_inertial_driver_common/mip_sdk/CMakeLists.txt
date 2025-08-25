@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(CMAKE_CXX_STANDARD 20) # CMake decays this to the highest supported by the compiler
+set(CMAKE_CXX_STANDARD 17) # CMake decays this to the highest supported by the compiler
 set(CMAKE_C_STANDARD 11)
 
 project(

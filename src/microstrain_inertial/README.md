@@ -30,7 +30,7 @@ For more information on the data published and services available see our [ROS w
 
 ## ROS vs ROS2 Versions
 
-Note that this branch contains the ROS2 implementation for the packages. If you are looking for the ROS version, you should go to the [`ros`](https://github.com/LORD-MicroStrain/ROS-MSCL/tree/ros) branch
+Note that this branch contains the ROS implementation for the packages. If you are looking for the ROS2 version, you should go to the [`ros2`](https://github.com/LORD-MicroStrain/ROS-MSCL/tree/ros2) branch
 
 ## Packages
 
@@ -45,7 +45,7 @@ This repo contains the following packages:
 
 ### Buildfarm
 
-As of `v2.0.5` this package is being built and distributed by the ROS build farm. If you do not need to modify the source, it is recommended to install directly from the buildfarm by running the following commands where `ROS_DISTRO` is the version of ROS you are using such as `galactic` or `humble`:
+As of `v2.0.5` this package is being built and distributed by the ROS build farm. If you do not need to modify the source, it is recommended to install directly from the buildfarm by running the following commands where `ROS_DISTRO` is the version of ROS you are using such as `noetic`:
 
 Driver:
 ```bash
@@ -57,7 +57,7 @@ RQT:
 sudo apt-get update && sudo apt-get install ros-ROS_DISTRO-microstrain-inertial-rqt
 ```
 
-For more information on the ROS distros and platforms we support, please see [index.ros.org](https://index.ros.org/r/microstrain_inertial/github-LORD-MicroStrain-microstrain_inertial/#humble)
+For more information on the ROS distros and platforms we support, please see [index.ros.org](https://index.ros.org/r/microstrain_inertial/github-LORD-MicroStrain-microstrain_inertial/#noetic)
 
 
 ### Source
@@ -77,11 +77,11 @@ time you pull changes you should pull with the `--recurse-submodules` flag, or a
 
 ## Building from source
 
-1. Install ROS2 and create a workspace: [Configuring Your ROS2 Environment](https://docs.ros.org/en/foxy/Tutorials/Configuring-ROS2-Environment.html)
+1. Install ROS and create a workspace: [Installing and Configuring Your ROS Environment](http://wiki.ros.org/ROS/Tutorials/InstallingandConfiguringROSEnvironment)
 
 2. Clone the repository into your workspace:
     ```bash
-    git clone --recursive --branch ros2 https://github.com/LORD-MicroStrain/microstrain_inertial.git ~/your_workspace/src/microstrain_inertial
+    git clone --recursive --branch ros https://github.com/LORD-MicroStrain/microstrain_inertial.git ~/your_workspace/src/microstrain_inertial
     ```
 
 3. Install rosdeps for this package: `rosdep install --from-paths ~/your_workspace/src -i -r -y`
@@ -90,8 +90,8 @@ time you pull changes you should pull with the `--recurse-submodules` flag, or a
 
     ```bash        
     cd ~/your_workspace
-    colcon build
-    source ~/your_workspace/install/setup.bash
+    catkin_make
+    source ~/your_workspace/devel/setup.bash
     ```
    The source command will need to be run in each terminal prior to launching a ROS node.
 
@@ -115,41 +115,32 @@ Once the udev rules are installed, the devices will appear as follows in the fil
 #### Launch the node and publish data
 The following command will launch the driver. Keep in mind each instance needs to be run in a separate terminal.
 ```bash
-ros2 launch microstrain_inertial_driver microstrain_launch.py
+roslaunch microstrain_inertial_driver microstrain.launch
 ```
 
 The node has some optional launch parameters that can be specified from the command line in the format `param:=value`
 - `namespace` : namespace that the driver will run in. All services and publishers will be prepended with this, default: `/`
 - `node_name` : name of the driver, default: `microstrain_inertial_driver`
 - `debug`     : output debug logs, default: `false`
-- `params_file` : path to a parameter file to override the default parameters stored in [`params.yml`](https://github.com/LORD-MicroStrain/microstrain_inertial_driver_common/blob/main/config/params.yml), default: [`empty.yml`](./microstrain_inertial_driver/config/empty.yml)
-
-> [!NOTE]
-> The example [`params.yml`](https://github.com/LORD-MicroStrain/microstrain_inertial_driver_common/blob/main/config/params.yml) file is formatted to work with ROS and will not work if specified as the params_file argument in ROS2.
->
-> If you want to override parameters for ROS2, start with [`empty.yml`](./microstrain_inertial_driver/config/empty.yml).
+- `params_file` : path to a parameter file to override the default parameters stored in [`params.yml`](https://github.com/LORD-MicroStrain/microstrain_inertial_driver_common/blob/main/config/params.yml), default: empty
     
 #### Publish data from two devices simultaneously  
 
-1. Create the following files somewhere on your system (we will assume they are stored in your home (`~`) directory):
+1. Create the following files somewhere on your system (we will assume they are stored in the `~` directory):
     1. `~/sensor_a_params.yml` with the contents:
         ```yaml
-        microstrain_inertial_driver:
-          ros__parameters:
-            port: /dev/ttyACM0
+        port: /dev/ttyACM0
         ```
     2. `~/sensor_b_params.yml` with the contents:
         ```yaml
-        microstrain_inertial_driver:
-          ros__parameters:
-            port: /dev/ttyACM1
+        port: /dev/ttyACM1
         ```
 2. In two different terminals:
     ```bash    
-    ros2 launch microstrain_inertial_driver microstrain_launch.py node_name:=sensor_a_node namespace:=sensor_a params_file:="$HOME/sensor_a_params.yml"
+    roslaunch microstrain_inertial_driver microstrain.launch node_name:=sensor_a_node namespace:=sensor_a params_file:="~/sensor_a_params.yml"
     ```
     ```bash    
-    ros2 launch microstrain_inertial_driver microstrain_launch.py node_name:=sensor_b_node namespace:=sensor_b params_file:="$HOME/sensor_b_params.yml"
+    roslaunch microstrain_inertial_driver microstrain.launch node_name:=sensor_b_node namespace:=sensor_b params_file:="~/sensor_b_params.yml"
     ```
 
 This will launch two nodes that publish data to different namespaces:
@@ -158,31 +149,6 @@ This will launch two nodes that publish data to different namespaces:
 
 An example subscriber node can be found in the [MicroStrain Examples](./microstrain_inertial_examples) package.
 
-#### Lifecycle Node
-
-This package also provides a lifecycle node implementation. This version of the driver can be launched by running:
-```bash
-ros2 launch microstrain_inertial_driver microstrain_lifecycle_launch.py
-```
-
-This launch file accepts all of the same arguments as the above node as well as:
-- `configure` : If set to the exact string `true` the driver will automatically transition into the configure state.
-- `activate`  : If set to the exact string `true` the driver will automatically transition into the activate state.
-
-Additionally, the node may be transitioned anytime after startup using the following commands (note that the `namespace` and `name` parameters will affect the node name in the following commands):
-
-- Transition to configure state: 
-    ```bash
-    ros2 lifecycle set /microstrain_inertial_driver_node configure
-    ```
-
-- Transition to active state: 
-
-    ```bash
-    ros2 lifecycle set /microstrain_inertial_driver_node activate
-    ```
-
-You can stop data from streaming by putting the device into the "deactivate" state.  Both the "cleanup" and "shutdown" states will disconnect from the device and close the raw data log file (if enabled.)
 
 ## Docker Development
 
@@ -229,8 +195,9 @@ Both the `ros` and `ros2` branches share most of their code by using git submodu
 
 Previous versions of the driver were released as [tags](https://github.com/LORD-MicroStrain/microstrain_inertial/tags) on Github. They can also be found in specific branches:
 
-* [`ros2-3.x.x`](https://github.com/LORD-MicroStrain/microstrain_inertial/tree/ros2-3.x.x) contains the most recent code before the standardizing refactor
-* [`ros2-2.x.x`](https://github.com/LORD-MicroStrain/microstrain_inertial/tree/ros2-2.x.x) contains the most recent code before the MIP SDK refactor
+* [`ros-3.x.x`](https://github.com/LORD-MicroStrain/microstrain_inertial/tree/ros-3.x.x) contains the most recent code before the standardizing refactor
+* [`ros-2.x.x`](https://github.com/LORD-MicroStrain/microstrain_inertial/tree/ros-2.x.x) contains the most recent code before the MIP SDK refactor
+* [`master`](https://github.com/LORD-MicroStrain/microstrain_inertial/tree/master) contains the most recent code before the common codebase refactor (prior to `2.0.0`)
 
 ## License
 

@@ -1,37 +1,23 @@
 version: "3.8"
-
 services:
-  ros2:
-    image: dustynv/ros:humble-ros-base-l4t-r36.3.0
-    container_name: ros2
+  ros:
+    image: hcolesxyz/ros:noetic-l4t-r36.3.0
+    container_name: ros
     privileged: true
     runtime: nvidia
-    shm_size: "2g"
-    cpus: "12.0" 
-    mem_limit: "16g"
     environment:
-      - DISPLAY=${DISPLAY}
+      #- DISPLAY
       - QT_X11_NO_MITSHM=1
-      - NVIDIA_VISIBLE_DEVICES=all
-      - NVIDIA_DRIVER_CAPABILITIES=all
-      - RMW_IMPLEMENTATION=rmw_fastrtps_cpp
-      - ROS_LOG_DIR=/tmp/ros_logs
-      - HOME=/root
-      - EGL_PLATFORM=display
-      - ROS_DOMAIN_ID=0
     network_mode: "host"
     init: true
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /tmp/ros_logs:/tmp/ros_logs
-      - /home/mapping/workspaces/mapping_robot2/:/ros_humble/mapping_ws/
+      - /home/mapping/workspaces/mapping_robot/:/ros_noetic/mapping_ws/
       - /home/mapping/rosbag:/data
-      - /mnt/external_drive:/data2
-      - /dev:/dev
-      - /etc/enctune.conf:/etc/enctune.conf:ro
-      - /var/run/dbus:/var/run/dbus
+      - /mnt/ssd:/data2
+      - /dev/:/dev/
+        #entrypoint: [""]
     tty: true
     stdin_open: true
     restart: unless-stopped
-    working_dir: /ros_humble/mapping_ws/
-
+    working_dir: /ros_noetic/mapping_ws/

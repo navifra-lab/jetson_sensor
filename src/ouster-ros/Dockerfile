@@ -1,31 +1,25 @@
-ARG ROS_DISTRO=rolling
-ARG RMW_IMPLEMENTATION=rmw_fastrtps_cpp
+ARG ROS_DISTRO=melodic
 
 FROM ros:${ROS_DISTRO}-ros-core AS build-env
-ARG RMW_IMPLEMENTATION
-ARG ROS_DISTRO
 ENV DEBIAN_FRONTEND=noninteractive \
-    RMW_IMPLEMENTATION=${RMW_IMPLEMENTATION} \
     BUILD_HOME=/var/lib/build \
-    OUSTER_ROS_PATH=/opt/ros2_ws/src/ouster-ros
+    OUSTER_ROS_PATH=/opt/catkin_ws/src/ouster-ros
 
-RUN set -xue && \
-    apt-get update && \
-    apt-get install -y \
-        build-essential \
-        cmake \
-        fakeroot \
-        dpkg-dev \
-        python3-rosdep \
-        python3-rospkg \
-        python3-bloom \
-        python3-colcon-common-extensions
-
-RUN if [ "$RMW_IMPLEMENTATION" = "rmw_cyclonedds_cpp" ]; then \
-        apt-get install -y ros-${ROS_DISTRO}-rmw-cyclonedds-cpp; \
-    elif [ "$RMW_IMPLEMENTATION" = "rmw_zenoh_cpp" ]; then \
-        apt-get install -y ros-${ROS_DISTRO}-rmw-zenoh-cpp; \
-    fi
+RUN set -xue \
+# Kinetic and melodic have python3 packages but they seem to conflict
+&& [ $ROS_DISTRO = "noetic" ] && PY=python3 || PY=python \
+# Turn off installing extra packages globally to slim down rosdep install
+&& echo 'APT::Install-Recommends "0";' > /etc/apt/apt.conf.d/01norecommend \
+&& apt-get update \
+&& apt-get install -y       \
+    build-essential         \
+    cmake                   \
+    fakeroot                \
+    dpkg-dev                \
+    debhelper               \
+    $PY-rosdep              \
+    $PY-rospkg              \
+    $PY-bloom
 
 # Set up non-root build user
 ARG BUILD_UID=1000
@@ -42,8 +36,7 @@ RUN set -xe         \
 && apt-get update   \
 && rosdep init      \
 && rosdep update --rosdistro=$ROS_DISTRO \
-&& rosdep install --from-paths $OUSTER_ROS_PATH -y --ignore-src
-
+&& rosdep install -y --from-paths $OUSTER_ROS_PATH
 
 USER build:build
 WORKDIR ${BUILD_HOME}
@@ -51,23 +44,25 @@ WORKDIR ${BUILD_HOME}
 RUN set -xe \
 && mkdir src \
 && cp -R $OUSTER_ROS_PATH ./src
+
+
 FROM build-env
-ARG ROS_DISTRO
 
 SHELL ["/bin/bash", "-c"]
 
-RUN source /opt/ros/$ROS_DISTRO/setup.bash && colcon build \
-    --symlink-install --cmake-args -DCMAKE_BUILD_TYPE=Release \
-    -DCMAKE_CXX_FLAGS="-Wno-deprecated-declarations"
+ENV CXXFLAGS="-Wno-deprecated-declarations"
+RUN /opt/ros/$ROS_DISTRO/env.sh catkin_make     \
+-DCMAKE_BUILD_TYPE=Release                      \
+&& /opt/ros/$ROS_DISTRO/env.sh catkin_make install
 
-RUN source /opt/ros/$ROS_DISTRO/setup.bash && colcon test \
-    --ctest-args tests ouster_ros --rerun-failed --output-on-failure
+RUN /opt/ros/$ROS_DISTRO/env.sh catkin_make --make-args tests \
+&& source ./devel/setup.bash && rosrun ouster_ros ouster_ros_test
 
 # Entrypoint for running Ouster ros:
 #
 # Usage: docker run --rm -it ouster-ros [sensor.launch parameters ..]
 #
 ENTRYPOINT ["bash", "-c", "set -e \
-&& source ./install/setup.bash \
-&& ros2 launch ouster_ros sensor.launch.xml \"$@\" \
+&& . ./devel/setup.bash \
+&& roslaunch ouster_ros sensor.launch \"$@\" \
 ", "ros-entrypoint"]

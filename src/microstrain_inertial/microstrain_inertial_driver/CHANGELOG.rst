@@ -4,12 +4,7 @@ Changelog for package microstrain_inertial_driver
 
 4.7.0 (2025-06-05)
 ------------------
-* Adds support for CV7-GNSS-INS (`#389 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/389>`_)
-* Contributors: Rob
-
-4.6.1 (2025-04-25)
-------------------
-* No longer exports ROS packages
+* Adds support for CV7-GNSS-INS (`#388 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/388>`_)
 * Contributors: Rob
 
 4.6.0 (2025-04-15)
@@ -30,21 +25,19 @@ Changelog for package microstrain_inertial_driver
 
 4.3.0 (2024-05-15)
 ------------------
-* Updates CV7 INS example yaml (`https://github.com/LORD-MicroStrain/microstrain_inertial/pull/330` _)
-* Update udev to specify manufacturer (`https://github.com/LORD-MicroStrain/microstrain_inertial/pull/327` _)
-* Rename gx5_15 config file to match folder name (`https://github.com/LORD-MicroStrain/microstrain_inertial/pull/321 _`)
-* Updates submodule (`#328 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/329>`_)
+* Updates CV7 INS example yaml (`https://github.com/LORD-MicroStrain/microstrain_inertial/pull/331` _)
+* Updates submodule (`#328 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/328>`_)
   * Adds ability for ROS2 implementation to be a non-lifecycle node microstrain_inertial_driver_common#68
   * Remove dongle version check microstrain_inertial_driver_common#72
   * Updates MIP SDK to fully support CV7-INS microstrain_inertial_driver_common#73
   * Waits for GNSS antenna transforms instead of erroring if they cannot be found microstrain_inertial_driver_common#74
   * Fixes the gnss_state in human readable status microstrain_inertial_driver_common#75
-* Contributors: hilary-luo, GreatAlexander, robbiefish
+* Contributors: Rob
 
 4.2.0 (2024-04-04)
 ------------------
-* Adds ability for node to be launched as a normal non lifecycle node (`#317 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/317>`_)
-* Contributors: Rob
+* Updates submodule to be in line with ROS2
+* Contributors: Rob Fisher
 
 4.1.0 (2024-04-02)
 ------------------
@@ -60,7 +53,7 @@ Changelog for package microstrain_inertial_driver
 
 4.0.0 (2024-01-26)
 ------------------
-* ROS2 Standardize and update to work better with ROS standard tools (`#295 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/295>`_)
+* ROS Standardize and update to work better with ROS standard tools (`#294 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/294>`_)
 * Contributors: Rob
 
 3.2.1 (2024-01-26)
@@ -124,12 +117,12 @@ Changelog for package microstrain_inertial_driver
 
 2.7.0 (2022-09-23)
 ------------------
-* ROS2 serial improvements (`#177 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/178>`_)
+* ROS serial improvements (`#177 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/177>`_)
   * Adds logging loop every second that will print the number of bytes read and written
   * Adds ability to configure the baudrate on the device using `set_baud`
   * Changes `*_data_rate` fields to floating point numbers to allow users to configure data rates at non whole numbers
   * Fixes bug where a quaternion would be indexed into before it was populated
-* ROS2 Updates params file to note required changes for devices, and corrects incorrect documentation (`#170 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/169>`_)
+* ROS Updates params file to note required changes for devices, and corrects incorrect documentation (`#170 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/170>`_)
 * Contributors: Rob
 
 2.6.0 (2022-05-25)
@@ -162,6 +155,11 @@ Changelog for package microstrain_inertial_driver
 * Fixed submodule initialization
 * Contributors: dacuster, robbiefish
 
+2.4.1 (2022-01-06)
+------------------
+* Deprecated args will no longer override params_file unless actually used
+* Contributors: robbiefish
+
 2.4.0 (2022-01-05)
 ------------------
 * BREAKING: Changes default namespace from /gx5 to / which is more generic to all usecases as customers are often not using a gx5 device
@@ -176,6 +174,11 @@ Changelog for package microstrain_inertial_driver
 * BREAKING: Updates device_report_service to return the device information instead of just printing it
 * Publishes Aiding Measurement Summary messages to topic nav/aiding_summary
 * Publishes Fix Info messages to topic gnss1/fix_info and gnss2/fix_info
+* Contributors: robbiefish
+
+2.2.1 (2021-12-09)
+------------------
+* Defaults RTCM subscription and NMEA publisher to false
 * Contributors: robbiefish
 
 2.2.0 (2021-12-03)
@@ -197,18 +200,39 @@ Changelog for package microstrain_inertial_driver
 * Publishes RTK data even when device_setup is set to false if the device was configured to send RTK data
 * Contributors: ianmooreparker, robbiefish
 
-2.0.6 (2021-10-22)
+2.0.5 (2021-10-19)
 ------------------
-* Fixes CMake build errors experienced on the build farm
-* Contributors: Rob Fisher, robbiefish
+* Update MSCL version to fix ROS buildfarm errors hopefully
+* Contributors: robbiefish
 
-2.0.5 (2021-10-21)
+2.0.4 (2021-09-08)
 ------------------
-* Updates maintainers and dependencies in preparation for ROS build farm
-* Updates submodule to check for correct architecture
-* Moves submodules to subdirectory to get bloom working
-* Renames packages to be more consistent with ROS naming conventions
-* Contributors: Rob Fisher, robbiefish
+* Upgrade CMake version and removes unused include in examples
+* Contributors: robbiefish
+
+2.0.3 (2021-09-08)
+------------------
+* Fixes missing dependencies in example and checks gcc directly for architecture
+* Contributors: robbiefish
+
+2.0.2 (2021-08-30)
+------------------
+* Fixes cmake warnings and updates maintainers
+* Contributors: robbiefish
+
+2.0.1 (2021-08-24)
+------------------
+* Moves submodules to accomodate ROS build farm
+* Contributors: Rob Fisher
+
+2.0.0 (2021-08-24)
+------------------
+* Optionally polls and waits for device to exist before trying to connect
+* Adds tolerance for streaming devices on startup by retrying connections until the device can be communicated with
+* Moves common code to submodule to reduce code duplication
+* Renames packages to be compatible with ROS build farm
+* Gracefully exits on device disconnect
+* Contributors: Rob Fisher
 
 1.1.4 (2021-07-30)
 ------------------

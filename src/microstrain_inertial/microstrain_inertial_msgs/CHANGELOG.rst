@@ -5,9 +5,6 @@ Changelog for package microstrain_inertial_msgs
 4.7.0 (2025-06-05)
 ------------------
 
-4.6.1 (2025-04-25)
-------------------
-
 4.6.0 (2025-04-15)
 ------------------
 * ROS: Adds system time sync status and adds valid_flags to gps_timestamp in MIP header (`#380 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/380>`_)
@@ -39,7 +36,7 @@ Changelog for package microstrain_inertial_msgs
 
 4.0.0 (2024-01-26)
 ------------------
-* ROS2 Standardize and update to work better with ROS standard tools (`#295 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/295>`_)
+* ROS Standardize and update to work better with ROS standard tools (`#294 <https://github.com/LORD-MicroStrain/microstrain_inertial/issues/294>`_)
 * Contributors: Rob
 
 3.2.1 (2024-01-26)
@@ -89,6 +86,9 @@ Changelog for package microstrain_inertial_msgs
 * Fixed submodule initialization
 * Contributors: dacuster, robbiefish
 
+2.4.1 (2022-01-06)
+------------------
+
 2.4.0 (2022-01-05)
 ------------------
 
@@ -100,6 +100,9 @@ Changelog for package microstrain_inertial_msgs
 * Updates license files to be accurate for each package
 * Contributors: robbiefish
 
+2.2.1 (2021-12-09)
+------------------
+
 2.2.0 (2021-12-03)
 ------------------
 * Adds set filter speed lever arm service definition to allow users to configure Measurement Speed Lever Arm at runtime with a service call
@@ -109,12 +112,31 @@ Changelog for package microstrain_inertial_msgs
 2.1.0 (2021-11-12)
 ------------------
 
-2.0.5 (2021-10-21)
+2.0.5 (2021-10-19)
 ------------------
-* Updates maintainers and dependencies in preparation for ROS build farm
-* Moves submodules to subdirectory to get bloom working
-* Renames packages to be more consistent with ROS naming conventions
-* Contributors: Rob Fisher, robbiefish
+
+2.0.4 (2021-09-08)
+------------------
+* Upgrade CMake version and removes unused include in examples
+* Contributors: robbiefish
+
+2.0.3 (2021-09-08)
+------------------
+
+2.0.2 (2021-08-30)
+------------------
+* Fixes cmake warnings and updates maintainers
+* Contributors: robbiefish
+
+2.0.1 (2021-08-24)
+------------------
+* Moves submodules to accomodate ROS build farm
+* Contributors: Rob Fisher
+
+2.0.0 (2021-08-24)
+------------------
+* Moves service messages to msgs package
+* Contributors: Rob Fisher
 
 1.1.4 (2021-07-30)
 ------------------

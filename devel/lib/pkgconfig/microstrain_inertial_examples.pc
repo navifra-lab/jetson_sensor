@@ -1,0 +1,8 @@
+prefix=/ros_noetic/mapping_ws/devel
+
+Name: microstrain_inertial_examples
+Description: Description of microstrain_inertial_examples
+Version: 4.7.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

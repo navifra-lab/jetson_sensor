@@ -1,0 +1,22 @@
+(cl:in-package microstrain_inertial_msgs-msg)
+(cl:export '(MODEM_STATE-VAL
+          MODEM_STATE
+          CONNECTION_TYPE-VAL
+          CONNECTION_TYPE
+          RSSI-VAL
+          RSSI
+          SIGNAL_QUALITY-VAL
+          SIGNAL_QUALITY
+          TOWER_CHANGE_INDICATOR-VAL
+          TOWER_CHANGE_INDICATOR
+          NMEA_TIMEOUT_FLAG-VAL
+          NMEA_TIMEOUT_FLAG
+          SERVER_TIMEOUT_FLAG-VAL
+          SERVER_TIMEOUT_FLAG
+          RTCM_TIMEOUT_FLAG-VAL
+          RTCM_TIMEOUT_FLAG
+          DEVICE_OUT_OF_RANGE_FLAG-VAL
+          DEVICE_OUT_OF_RANGE_FLAG
+          CORRECTIONS_UNAVAILABLE_FLAG-VAL
+          CORRECTIONS_UNAVAILABLE_FLAG
+))

@@ -106,3 +106,8 @@ add_subdirectory("${CMAKE_CURRENT_LIST_DIR}/cpp")
 #        COMMAND diff -u "${CMAKE_CURRENT_LIST_DIR}/data/packet_example_cpp_check.txt" <(examples/MipPacketExample)
 #    )
 #endif()
+
+# Force C++17 for log4cxx compatibility
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)

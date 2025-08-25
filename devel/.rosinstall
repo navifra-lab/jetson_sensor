@@ -1,0 +1,2 @@
+- setup-file:
+    local-name: /ros_noetic/mapping_ws/devel/setup.sh

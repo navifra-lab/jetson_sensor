@@ -1,29 +1,11 @@
-cmake_minimum_required(VERSION 3.5)
-set(CMAKE_CXX_STANDARD 14)
+cmake_minimum_required(VERSION 3.0.2)
 project(microstrain_inertial_msgs)
 
-# Some ROS version specific defines
-if(DEFINED ENV{ROS_DISTRO})
-  if ("$ENV{ROS_DISTRO}" STREQUAL "rolling")
-    set(EXTRA_DEPS service_msgs)
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "iron")
-    set(EXTRA_DEPS service_msgs)
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "humble")
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "galactic")
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "foxy")
-  else()
-    set(EXTRA_DEPS service_msgs)
-  endif()
-endif()
-
-find_package(ament_cmake REQUIRED)
-find_package(rosidl_default_runtime REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-foreach (EXTRA_DEP IN LISTS EXTRA_DEPS)
-  find_package(${EXTRA_DEP} REQUIRED)
-endforeach()
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  std_msgs
+  geometry_msgs
+)
 
 # Locate the common code and messages
 set(COMMON_NAME "microstrain_inertial_msgs_common")
@@ -42,7 +24,7 @@ if(NOT EXISTS "${COMMON_DIR}/msg")
   # Initialize and update the submodule
   execute_process(
     WORKING_DIRECTORY "${${PROJECT_NAME}_SOURCE_DIR}"
-    COMMAND ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} submodule update --init --recursive
+    COMMAND ${CMAKE_COMMAND} -E env ${GIT_EXECUTABLE} submodule update --recursive --init
   )
 endif()
 
@@ -50,19 +32,33 @@ endif()
 set(SRV_DIR "${COMMON_DIR}/srv")
 file(GLOB SRV_FILES RELATIVE "${SRV_DIR}"
     "${SRV_DIR}/*.srv")
-list(TRANSFORM SRV_FILES PREPEND ${COMMON_DIR}:srv/)
+add_service_files(
+  DIRECTORY ${SRV_DIR}
+  FILES ${SRV_FILES}
+)
 
 # Generate Message Files
 set(MSG_DIR "${COMMON_DIR}/msg")
 file(GLOB MSG_FILES RELATIVE "${MSG_DIR}"
     "${MSG_DIR}/*.msg")
-list(TRANSFORM MSG_FILES PREPEND ${COMMON_DIR}:msg/)
-
-rosidl_generate_interfaces(${PROJECT_NAME}
-  ${MSG_FILES}
-  ${SRV_FILES}
-  DEPENDENCIES std_msgs geometry_msgs ${EXTRA_DEPS}
+add_message_files(
+  DIRECTORY ${MSG_DIR}
+  FILES ${MSG_FILES}
 )
 
-ament_export_dependencies(rosidl_default_runtime)
-ament_package()
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+  geometry_msgs
+)
+
+catkin_package(CATKIN_DEPENDS
+  message_runtime
+  std_msgs
+  geometry_msgs
+)
+
+# Force C++17 for log4cxx compatibility
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)

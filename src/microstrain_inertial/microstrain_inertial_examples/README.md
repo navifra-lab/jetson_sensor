@@ -43,12 +43,12 @@ This example also shows how one would input external position and velocity into 
 To run this example, run the following command after doing the [common steps](#common-steps):
 
 ```bash
-ros2 launch microstrain_inertial_examples cv7_ins_launch.py
+roslaunch microstrain_inertial_examples cv7_ins.launch
 ```
 
 This example contains the following files:
 
-* [`launch/cv7_ins_launch.py`](./launch/cv7_ins_launch.py)
+* [`launch/cv7_ins.launch`](./launch/cv7_ins.launch)
 * [`config/cv7_ins/cv7_ins.yml`](./config/cv7_ins/cv7_ins.yml)
 * [`config/cv7_ins/display.rviz`](./config/cv7_ins/display.rviz)
 
@@ -65,12 +65,12 @@ orientation, angular and linear velocity from a CV7 and displaying that data in 
 To run this example, run the following command after doing the [common steps](#common-steps):
 
 ```bash
-ros2 launch microstrain_inertial_examples cv7_launch.py
+roslaunch microstrain_inertial_examples cv7.launch
 ```
 
 This example contains the following files:
 
-* [`launch/cv7_launch.py`](./launch/cv7_launch.py)
+* [`launch/cv7.launch`](./launch/cv7.launch)
 * [`config/cv7/cv7.yml`](./config/cv7/cv7.yml)
 * [`config/cv7/display.rviz`](./config/cv7/display.rviz)
 
@@ -92,12 +92,12 @@ page for more help with this.
 3. Update `gnss1_antenna_offset` and `gnss2_antenna_offset` in `config/gq7/gq7.yml` to your antenna offsets
 4. Run the following command:
 ```bash
-ros2 launch microstrain_inertial_examples gq7_launch.py
+roslaunch microstrain_inertial_examples gq7.launch
 ```
 
 This example contains the following files:
 
-* [`launch/gq7_launch.py`](./launch/gq7_launch.py)
+* [`launch/gq7.launch`](./launch/gq7.launch)
 * [`config/gq7/gq7.yml`](./config/gq7/gq7.yml)
 * [`config/gq7/display.rviz`](./config/gq7/display.rviz)
 
@@ -116,7 +116,7 @@ page for more help with this.
 3. Update `gnss1_antenna_offset` in `config/gx5_45/gx5_45.yml` to your antenna offset
 4. Run the following command:
 ```bash
-ros2 launch microstrain_inertial_examples gx5_45_launch.py
+roslaunch microstrain_inertial_examples gx5_45.launch
 ```
 
 ### GX5-AHRS / CX5-AHRS
@@ -130,12 +130,12 @@ orientation, angular and linear velocity from a GX5-AHRS and displaying that dat
 To run this example, run the following command after doing the [common steps](#common-steps):
 
 ```bash
-ros2 launch microstrain_inertial_examples gx5_25_launch.py
+roslaunch microstrain_inertial_examples gx5_25.launch
 ```
 
 This example contains the following files:
 
-* [`launch/gx5_25_launch.py`](./launch/gx5_25_launch.py)
+* [`launch/gx5_25.launch`](./launch/gx5_25.launch)
 * [`config/gx5_25/gx5_25.yml`](./config/gx5_25/gx5_25.yml)
 * [`config/gx5_25/display.rviz`](./config/gx5_25/display.rviz)
 
@@ -150,12 +150,12 @@ orientation, angular and linear velocity from a GX5-AR and displaying that data 
 To run this example, run the following command after doing the [common steps](#common-steps):
 
 ```bash
-ros2 launch microstrain_inertial_examples gx5_15_launch.py
+roslaunch microstrain_inertial_examples gx5_15.launch
 ```
 
 This example contains the following files:
 
-* [`launch/gx5_15_launch.py`](./launch/gx5_15_launch.py)
+* [`launch/gx5_15.launch`](./launch/gx5_15.launch)
 * [`config/gx5_15/gx5_15.yml`](./config/gx5_15/gx5_15.yml)
 * [`config/gx5_15/display.rviz`](./config/gx5_15/display.rviz)
 
@@ -177,11 +177,11 @@ page on the MicroStrain manual.
 To run this example, run the following command after doing the [common steps](#common-steps):
 
 ```bash
-ros2 launch microstrain_inertial_examples cv7_ins_nmea_aux_launch.py
+roslaunch microstrain_inertial_examples cv7_ins_nmea_aux.launch
 ```
 
 This example contains the following files:
 
-* [`launch/cv7_ins_nmea_aux_launch.py`](./launch/cv7_ins_nmea_aux_launch.py)
+* [`launch/cv7_ins_nmea_aux.launch`](./launch/cv7_ins_nmea_aux.launch)
 * [`config/cv7_ins_nmea_aux/cv7_ins.yml`](./config/cv7_ins_nmea_aux/cv7_ins.yml)
 * [`config/cv7_ins_nmea_aux/display.rviz`](./config/cv7_ins_nmea_aux/display.rviz)

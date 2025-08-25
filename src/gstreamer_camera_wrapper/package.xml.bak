@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>gstreamer_camera_wrapper</name>
+  <version>0.0.1</version>
+  <description>ROS wrapper for GStreamer OpenCV Multi Camera</description>
+
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>MIT</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+
+  <export>
+  </export>
+</package>

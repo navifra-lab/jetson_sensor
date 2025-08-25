@@ -1,0 +1,15 @@
+cmake_minimum_required(VERSION 3.0.2)
+project(gstreamer_camera_wrapper)
+
+find_package(catkin REQUIRED COMPONENTS
+  rospy
+  sensor_msgs
+  cv_bridge
+)
+
+catkin_package()
+
+catkin_install_python(PROGRAMS
+  scripts/gstreamer_opencv_multi.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

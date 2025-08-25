@@ -1,11 +1,9 @@
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.0.2)
 project(microstrain_inertial_driver)
 
 # C++ 14 required
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
 
 # Export compile commands by default (helpful for clang-tidy and autocomplete for certain IDEs)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON CACHE BOOL "" FORCE)
@@ -25,6 +23,7 @@ set(COMMON_NAME "microstrain_inertial_driver_common")
 set(COMMON_DIR "${${PROJECT_NAME}_SOURCE_DIR}/${COMMON_NAME}")
 set(COMMON_SRC_DIR "${COMMON_DIR}/src")
 set(COMMON_INC_DIR "${COMMON_DIR}/include/${COMMON_NAME}")
+
 set(MIP_SDK_DIR "${COMMON_DIR}/mip_sdk")
 set(MIP_SDK_SRC_DIR "${MIP_SDK_DIR}/src")
 
@@ -73,10 +72,8 @@ else()
   endif()
 endif()
 
-if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-unused-variable -fno-builtin-memcpy")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-builtin-memcpy")
-endif()
+# Set some general CMake flags
+set(CMAKE_C_FLAGS "-Wno-implicit-function-declaration -Wno-incompatible-pointer-types -Wno-unused-variable -Wno-format -fno-builtin-memcpy")
 
 # Include the MIP SDK source
 add_subdirectory("${MIP_SDK_DIR}" EXCLUDE_FROM_ALL)
@@ -85,23 +82,30 @@ include_directories("${MIP_SDK_SRC_DIR}")
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(ament_cmake REQUIRED)
-find_package(rclcpp_lifecycle REQUIRED)
-find_package(lifecycle_msgs REQUIRED)
-find_package(rosidl_default_generators REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(nav_msgs REQUIRED)
-find_package(nmea_msgs REQUIRED)
-find_package(rtcm_msgs REQUIRED)
-find_package(rclcpp REQUIRED)
-find_package(rclcpp_components REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(std_msgs REQUIRED)
-find_package(std_srvs REQUIRED)
-find_package(tf2 REQUIRED)
-find_package(tf2_ros REQUIRED)
-find_package(tf2_geometry_msgs REQUIRED)
-find_package(microstrain_inertial_msgs REQUIRED)
+find_package(catkin REQUIRED COMPONENTS
+  roslint
+  message_generation
+  geometry_msgs
+  nav_msgs
+  nmea_msgs
+  rtcm_msgs
+  roscpp
+  sensor_msgs
+  std_msgs
+  std_srvs
+  tf2
+  tf2_ros
+  tf2_geometry_msgs
+  microstrain_inertial_msgs
+)
+
+# Find some less ROS-y packages
+list(APPEND CMAKE_MODULE_PATH "/usr/share/cmake/geographiclib/")
+find_package(Eigen3 REQUIRED)
+find_package(GeographicLib REQUIRED)
+
+# We want to use the static library for libgeographic, but it doesn't seem to find it for us, so substitute it here
+string(REGEX REPLACE "[.]so[^\\/\\s]*$" ".a" GeographicLib_LIBRARIES ${GeographicLib_LIBRARIES})
 
 ###################################
 ## catkin specific configuration ##
@@ -112,9 +116,12 @@ find_package(microstrain_inertial_msgs REQUIRED)
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-ament_export_include_directories()
-ament_export_dependencies(
-    rosidl_default_runtime
+catkin_package(
+  INCLUDE_DIRS
+    include
+  CATKIN_DEPENDS
+    roscpp
+    cmake_modules
     tf2
     tf2_ros
     tf2_geometry_msgs
@@ -125,20 +132,12 @@ ament_export_dependencies(
     nav_msgs
     nmea_msgs
     rtcm_msgs
-		microstrain_inertial_msgs
+    message_runtime
+    microstrain_inertial_msgs
 )
-
 ###########
 ## Build ##
 ###########
-
-# Find some less ROS-y packages
-list(APPEND CMAKE_MODULE_PATH "/usr/share/cmake/geographiclib/")
-find_package(Eigen3 REQUIRED)
-find_package(GeographicLib REQUIRED)
-
-# We want to use the static library for libgeographic, but it doesn't seem to find it for us, so substitute it here
-string(REGEX REPLACE "[.]so[^\\/\\s]*$" ".a" GeographicLib_LIBRARIES ${GeographicLib_LIBRARIES})
 
 # Add the catkin includes
 include_directories(
@@ -149,13 +148,12 @@ include_directories(
   ${GeographicLib_INCLUDE_DIRS}
 )
 
-set(COMMON_SRC_FILES
+set(LIB_SRC_FILES
   ${COMMON_SRC_DIR}/subscribers.cpp
   ${COMMON_SRC_DIR}/publishers.cpp
   ${COMMON_SRC_DIR}/node_common.cpp
   ${COMMON_SRC_DIR}/services.cpp
   ${COMMON_SRC_DIR}/config.cpp
-
   ${COMMON_SRC_DIR}/utils/clock_bias_monitor.cpp
 
   ${COMMON_SRC_DIR}/utils/mappings/mip_mapping.cpp
@@ -166,8 +164,9 @@ set(COMMON_SRC_FILES
   ${COMMON_SRC_DIR}/utils/mip/ros_mip_device_aux.cpp
   ${COMMON_SRC_DIR}/utils/mip/ros_connection.cpp
 
+  src/microstrain_inertial_driver.cpp
 )
-set(COMMON_INC_FILES
+set(LIB_INC_FILES
   ${COMMON_INC_DIR}/subscribers.h
   ${COMMON_INC_DIR}/publishers.h
   ${COMMON_INC_DIR}/node_common.h
@@ -184,58 +183,26 @@ set(COMMON_INC_FILES
   ${COMMON_INC_DIR}/utils/mip/ros_mip_device_aux.h
   ${COMMON_INC_DIR}/utils/mip/ros_connection.h
 
-)
-set(COMMON_FILES ${COMMON_SRC_FILES} ${COMMON_INC_FILES})
-
-set(AMENT_COMMON_DEPENDENCIES
-  rclcpp
-  rclcpp_lifecycle
-  std_msgs
-  std_srvs
-  lifecycle_msgs
-  sensor_msgs
-  geometry_msgs
-  nav_msgs
-  nmea_msgs
-  rtcm_msgs
-  tf2
-  tf2_ros
-  tf2_geometry_msgs
-  microstrain_inertial_msgs
+  include/${PROJECT_NAME}/microstrain_inertial_driver.h
 )
 
-# Plain node
-set(NODE_NAME ${PROJECT_NAME}_node)
+add_library(${PROJECT_NAME} ${LIB_SRC_FILES} ${LIB_INC_FILES})
+add_dependencies(${PROJECT_NAME}
+  ${${PROJECT_NAME}_EXPORTED_TARGETS}
+  ${catkin_EXPORTED_TARGETS}
+)
+
+# Executables
 set(NODE_SRC_FILES
-  src/microstrain_inertial_driver.cpp
   src/microstrain_inertial_driver_node.cpp
 )
 set(NODE_INC_FILES
   include/${PROJECT_NAME}/microstrain_inertial_driver.h
 )
-set(NODE_FILES ${NODE_SRC_FILES} ${NODE_INC_FILES})
-add_executable(${NODE_NAME} ${NODE_FILES} ${COMMON_FILES})
-ament_target_dependencies(${NODE_NAME}
-  ${AMENT_COMMON_DEPENDENCIES}
-)
-
-# Lifecycle node
-set(LIFECYCLE_NAME ${PROJECT_NAME}_lifecycle_node)
-set(LIFECYCLE_SRC_FILES
-  src/microstrain_inertial_driver_lifecycle.cpp
-  src/microstrain_inertial_driver_lifecycle_node.cpp
-)
-set(LIFECYCLE_INC_FILES
-  include/${PROJECT_NAME}/microstrain_inertial_driver_lifecycle.h
-)
-set(LIFECYCLE_FILES ${LIFECYCLE_SRC_FILES} ${LIFECYCLE_INC_FILES})
-add_executable(${LIFECYCLE_NAME} ${LIFECYCLE_FILES} ${COMMON_FILES})
-target_compile_definitions(${LIFECYCLE_NAME} PUBLIC MICROSTRAIN_LIFECYCLE)
-ament_target_dependencies(${LIFECYCLE_NAME}
-  ${AMENT_COMMON_DEPENDENCIES}
-)
+add_executable(${PROJECT_NAME}_node ${NODE_SRC_FILES} ${NODE_INC_FILES})
 
 # Annoying, but the ROS types don't match up with the MIP types for floats and doubles, so ignore those warnings for now
+set_source_files_properties(${COMMON_SRC_DIR}/services.cpp PROPERTIES COMPILE_FLAGS "-Wno-narrowing")
 set_source_files_properties(${COMMON_SRC_DIR}/services.cpp PROPERTIES COMPILE_OPTIONS "-Wno-narrowing")
 
 # Tell the code the version of the driver that is being build
@@ -248,34 +215,20 @@ else()
   message(FATAL_ERROR "ROS_VERSION environment variable is not set.")
 endif()
 
-# Some ROS version specific defines
-if(DEFINED ENV{ROS_DISTRO})
-  if ("$ENV{ROS_DISTRO}" STREQUAL "rolling")
-    add_definitions(-DMICROSTRAIN_ROLLING=1)
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "humble")
-    add_definitions(-DMICROSTRAIN_HUMBLE=1)
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "galactic")
-    add_definitions(-DMICROSTRAIN_GALACTIC=1)
-  elseif ("$ENV{ROS_DISTRO}" STREQUAL "foxy")
-    add_definitions(-DMICROSTRAIN_FOXY=1)
-  else()
-    add_definitions(-DMICROSTRAIN_ROLLING=1)  # By default assume this is a newer ROS version than we support, so rolling define is the safest
-  endif()
-endif()
+# Allow the MSCL include directory to be accessed
+include_directories(${MSCL_INC_PATH} ${BOOST_INC_PATH})
 
 # Linking
-target_link_libraries(${LIFECYCLE_NAME}
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
   mip
   microstrain
   microstrain_serial
   microstrain_recording_connection
-  ${GeographicLib_LIBRARIES}
 )
-target_link_libraries(${NODE_NAME}
-  mip
-  microstrain
-  microstrain_serial
-  microstrain_recording_connection
+target_link_libraries(${PROJECT_NAME}_node
+  ${PROJECT_NAME}
+  ${catkin_LIBRARIES}
   ${GeographicLib_LIBRARIES}
 )
 
@@ -283,28 +236,53 @@ target_link_libraries(${NODE_NAME}
 ## Install ##
 #############
 
-install(TARGETS ${LIFECYCLE_NAME}
-  DESTINATION share/${PROJECT_NAME}
-  LIBRARY DESTINATION lib/${PROJECT_NAME}
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
-)
-install(TARGETS ${NODE_NAME}
-  DESTINATION share/${PROJECT_NAME}
-  LIBRARY DESTINATION lib/${PROJECT_NAME}
-  RUNTIME DESTINATION lib/${PROJECT_NAME}
+install(TARGETS ${PROJECT_NAME}_node
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+  PUBLIC_HEADER DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
 )
 
 install(DIRECTORY launch config
-  DESTINATION share/${PROJECT_NAME}
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 install(DIRECTORY ${COMMON_DIR}/config
-  DESTINATION share/${PROJECT_NAME}/${COMMON_NAME}
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${COMMON_NAME}
 )
-
-ament_package()
 
 # Reset the forced options
 set(BUILD_SHARED_LIBS "${BUILD_SHARED_LIBS_TEMP}" CACHE BOOL "${BUILD_SHARED_LIBS_TEMP}" FORCE)
 set(BUILD_EXAMPLES "${BUILD_EXAMPLES_TEMP}" CACHE BOOL "${BUILD_EXAMPLES_TEMP}" FORCE)
 set(BUILD_TESTING "${BUILD_TESTING_TEMP}" CACHE BOOL "${BUILD_TESTING_TEMP}" FORCE)
+
+#############
+## Testing ##
+#############
+
+# build/c++11 and whitespace/braces only trip on the buildfarm which is melodic, maybe it's not needed in noetic?
+set(ROSLINT_CPP_OPTS "--filter=-whitespace/line_length,-runtime/references,-readability/fn_size,-whitespace/parens,-build/c++11,-whitespace/braces")
+get_target_property(ROSLINT_SOURCES ${PROJECT_NAME} SOURCES)
+roslint_cpp(${ROSLINT_SOURCES})
+
+roslint_add_test()
+
+# Make sure that the wiki document is up to date
+add_test(
+  NAME wiki_publishers
+  COMMAND ${CMAKE_COMMAND} -E env ${COMMON_DIR}/tools/check-wiki-publishers.sh
+)
+add_test(
+  NAME wiki_services
+  COMMAND ${CMAKE_COMMAND} -E env ${COMMON_DIR}/tools/check-wiki-services.sh
+)
+add_test(
+  NAME wiki_subscribers
+  COMMAND ${CMAKE_COMMAND} -E env ${COMMON_DIR}/tools/check-wiki-subscribers.sh
+)
+
+# Make the ROS tests target run our tests as well
+if (BUILD_TESTING)
+  add_custom_target(custom_tests COMMAND ${CMAKE_CTEST_COMMAND})
+  add_dependencies(run_tests custom_tests)
+endif()
