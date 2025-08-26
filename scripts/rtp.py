@@ -1,99 +1,64 @@
-import gi
-import threading
+# streaming_gst.py
+import gi, threading, sys
 gi.require_version('Gst', '1.0')
 from gi.repository import Gst, GLib
-import sys
-
-# GStreamer 초기화
 Gst.init(None)
 
-def create_pipeline(pipeline_description):
+def create_pipeline(desc):
     try:
-        pipeline = Gst.parse_launch(pipeline_description)
-        if not pipeline:
-            raise Exception("파이프라인 생성 실패")
-        return pipeline
+        p = Gst.parse_launch(desc)
+        if not p:
+            raise RuntimeError("파이프라인 생성 실패")
+        return p
     except Exception as e:
-        print(f"파이프라인 생성 중 오류 발생: {e}")
+        print(f"파이프라인 생성 중 오류: {e}")
         sys.exit(1)
 
 def on_message(bus, message):
     t = message.type
     if t == Gst.MessageType.EOS:
-        print("End-Of-Stream 도달")
+        print("EOS")
     elif t == Gst.MessageType.ERROR:
         err, debug = message.parse_error()
-        print(f"에러: {err}, 디버그 정보: {debug}")
+        print(f"[GST][ERROR] {err} | {debug}")
 
-def run_pipeline(device, client_ip, port):
-    """특정 카메라 장치와 포트로 파이프라인 실행"""
-    pipeline_description = (
-        f"v4l2src device={device} ! "
-        "videorate ! video/x-raw, format=(string)UYVY, width=(int)1920, height=(int)1200, framerate=(fraction)10/1 ! "
-        "nvvidconv ! "
+def run_pipeline(device, host, port):
+    pipeline = f"""
+v4l2src device={device} do-timestamp=true !
+videorate drop-only=true !
+video/x-raw,format=UYVY,width=1920,height=1200,framerate=10/1 !
+queue leaky=downstream max-size-buffers=0 max-size-bytes=0 max-size-time=0 !
+nvvidconv !
+video/x-raw(memory:NVMM),format=I420,width=1920,height=1200,framerate=10/1 !
+queue leaky=downstream max-size-buffers=0 max-size-bytes=0 max-size-time=0 !
+nvv4l2h264enc maxperf-enable=1 preset-level=1 control-rate=1 bitrate=4000000 \
+              iframeinterval=10 idrinterval=1 insert-sps-pps=true EnableTwopassCBR=1 \
+! rtph264pay pt=96 config-interval=1 mtu=1200 \
+! udpsink host={host} port={port} sync=false async=false qos=false
+""".strip()
 
-        # 해상도 변경 부분
-        "video/x-raw(memory:NVMM), format=(string)I420, width=(int)1920, height=(int)1200, framerate=(fraction)10/1 ! "
-        # "video/x-raw(memory:NVMM), format=(string)I420, width=(int)1280, height=(int)720, framerate=(fraction)15/1 ! "
-        # "video/x-raw(memory:NVMM), format=(string)I420, width=(int)640, height=(int)480, framerate=(fraction)15/1 ! "
-        "nvv4l2h264enc bitrate=2000000 idrinterval=20 insert-sps-pps=true ! rtph264pay mtu=1400 ! "
-        f"udpsink host={client_ip} port={port} sync=false"
-    )
-
-    print(f"파이프라인 실행: {pipeline_description}")
-    pipeline = create_pipeline(pipeline_description)
-
-    bus = pipeline.get_bus()
-    bus.add_signal_watch()
-    bus.connect("message", on_message)
-
-    pipeline.set_state(Gst.State.PLAYING)
-    print(f"{device} -> {client_ip}:{port} 전송 중...")
-
+    print("[TX] 파이프라인:", pipeline)
+    p = create_pipeline(pipeline)
+    bus = p.get_bus(); bus.add_signal_watch(); bus.connect("message", on_message)
+    p.set_state(Gst.State.PLAYING)
+    print(f"{device} -> {host}:{port} 전송 중...")
     try:
-        loop = GLib.MainLoop()
-        loop.run()
+        GLib.MainLoop().run()
     except KeyboardInterrupt:
-        print(f"{device} 송출 중단됨.")
+        pass
     finally:
-        pipeline.set_state(Gst.State.NULL)
-        print(f"{device} 송출 종료.")
+        p.set_state(Gst.State.NULL)
 
 def main():
-    # 송출 대상 IP 및 포트 정의 (client pc ip 설정)
-    # client_ip = "0.0.0.0"
-    #client_ip = "192.168.55.100"
-    #client_ip = "192.168.0.111"
-    client_ip = "169.254.150.100"
-
-    # 카메라 개수 만큼 port 설정
-    
-    # ports = [7777]
-    #ports = [7777, 7778]  # 각 카메라의 RTP 포트
-    ports = [7777, 7778, 7779, 7780]  # 각 카메라의 RTP 포트
-
-    # 카메라 장치 리스트 설정
-    # devices = ["/dev/video0"]
-    #devices = ["/dev/video0","/dev/video1"]
+    client_ip = "127.0.0.1"
+    ports   = [7777, 7778, 7779, 7780]
     devices = ["/dev/video0","/dev/video1","/dev/video2","/dev/video3"]
 
-    # if len(devices) != len(ports):
-    #     print("카메라와 포트의 개수가 일치하지 않습니다.")
-    #     sys.exit(1)
-
-    # 각 카메라에 대해 스레드 생성
-    threads = []
-    for device, port in zip(devices, ports):
-        thread = threading.Thread(target=run_pipeline, args=(device, client_ip, port))
-        threads.append(thread)
-        thread.start()
-
-    # 모든 스레드 대기
-    try:
-        for thread in threads:
-            thread.join()
-    except KeyboardInterrupt:
-        print("사용자에 의해 중단되었습니다.")
+    threads=[]
+    for dev, port in zip(devices, ports):
+        th = threading.Thread(target=run_pipeline, args=(dev, client_ip, port), daemon=True)
+        th.start(); threads.append(th)
+    for th in threads: th.join()
 
 if __name__ == "__main__":
     main()

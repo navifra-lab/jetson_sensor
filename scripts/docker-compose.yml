@@ -1,23 +1,25 @@
-version: "3.8"
 services:
-  ros:
-    image: hcolesxyz/ros:noetic-l4t-r36.3.0
-    container_name: ros
+  rossensor:
+    image: ros1
+    container_name: rossensor
     privileged: true
-    runtime: nvidia
-    environment:
-      #- DISPLAY
-      - QT_X11_NO_MITSHM=1
+    runtime: nvidia      
     network_mode: "host"
     init: true
+    ipc: host            
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+      - NVIDIA_VISIBLE_DEVICES=all  
+      - NVIDIA_DRIVER_CAPABILITIES=all  
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /home/mapping/workspaces/jetson_sensor/:/ros_noetic/mapping_ws/
+      - /home/mapping/ros1_ws/jetson_sensor/:/ros_noetic/mapping_ws/
       - /home/mapping/rosbag:/data
       - /mnt/ssd:/data2
       - /dev/:/dev/
-        #entrypoint: [""]
+    working_dir: /ros_noetic/mapping_ws/
     tty: true
     stdin_open: true
     restart: unless-stopped
-    working_dir: /ros_noetic/mapping_ws/
+
