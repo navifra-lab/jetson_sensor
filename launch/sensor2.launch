@@ -1,0 +1,31 @@
+<launch>
+  <group ns="hrz">
+    <include file="$(find ouster_ros)/launch/driver.launch">
+      <arg name="sensor_hostname" value="169.254.150.218" />
+      <arg name="lidar_port"      value="7502" />
+      <arg name="imu_port"        value="7503" />
+      <arg name="lidar_mode"      value="2048x10" />
+      <arg name="timestamp_mode"  value="TIME_FROM_PTP_1588" />
+      <arg name="udp_dest"        value="169.254.186.100" />
+      <arg name="tf_prefix"       value="hrz" />
+      <arg name="pub_static_tf"   value="true" />
+      <arg name="viz"             value="false" />
+    </include>
+  </group>
+
+  <!-- VRT -->
+  <group ns="vrt">
+    <include file="$(find ouster_ros)/launch/driver.launch">
+      <arg name="sensor_hostname" value="169.254.186.89" />
+      <arg name="lidar_port"      value="7504" />
+      <arg name="imu_port"        value="7505" />
+      <arg name="lidar_mode"      value="2048x10" />
+      <arg name="timestamp_mode"  value="TIME_FROM_PTP_1588" />
+      <arg name="udp_dest"        value="169.254.186.100" />
+      <arg name="tf_prefix"       value="vrt" />
+      <arg name="pub_static_tf"   value="false" />
+      <arg name="viz"             value="false" />
+    </include>
+  </group>
+
+</launch>

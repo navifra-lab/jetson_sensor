@@ -12,7 +12,7 @@ services:
     init: true
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix:rw
-      - /home/mapping/workspaces/mapping_robot/:/ros_noetic/mapping_ws/
+      - /home/mapping/workspaces/jetson_sensor/:/ros_noetic/mapping_ws/
       - /home/mapping/rosbag:/data
       - /mnt/ssd:/data2
       - /dev/:/dev/
