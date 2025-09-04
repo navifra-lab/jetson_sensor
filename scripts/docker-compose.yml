@@ -1,7 +1,7 @@
 services:
   rossensor:
     image: ros1
-    container_name: rossensor
+    container_name: ros
     privileged: true
     runtime: nvidia      
     network_mode: "host"

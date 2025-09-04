@@ -5,7 +5,7 @@
         <arg name="tf_prefix" value="hrz" />
         <arg name="viz" value="false" />
         <arg name="sensor_hostname" value="169.254.150.218" />
-        <arg name="timestamp_mode" value="TIME_FROM_PTP_1588" />
+        <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME" />
         <arg name="lidar_port" value="7502" />
         <arg name="imu_port" value="7503" />
         <arg name="lidar_mode" value="1024x10" />
@@ -17,7 +17,7 @@
         <arg name="tf_prefix" value="vrt" />
         <arg name="viz" value="false" />
         <arg name="sensor_hostname" value="169.254.186.89" />
-        <arg name="timestamp_mode" value="TIME_FROM_PTP_1588" />
+        <arg name="timestamp_mode" value="TIME_FROM_ROS_TIME" />
         <arg name="lidar_mode" value="1024x10" />
         <arg name="lidar_port" value="7504" />
         <arg name="imu_port" value="7505" />

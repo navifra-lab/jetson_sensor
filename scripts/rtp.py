@@ -27,10 +27,10 @@ def run_pipeline(device, host, port):
 v4l2src device={device} do-timestamp=true !
 videorate drop-only=true !
 video/x-raw,format=UYVY,width=1920,height=1200,framerate=10/1 !
-queue leaky=downstream max-size-buffers=0 max-size-bytes=0 max-size-time=0 !
+queue leaky=downstream max-size-buffers=1 max-size-bytes=0 max-size-time=0 !
 nvvidconv !
 video/x-raw(memory:NVMM),format=I420,width=1920,height=1200,framerate=10/1 !
-queue leaky=downstream max-size-buffers=0 max-size-bytes=0 max-size-time=0 !
+queue leaky=downstream max-size-buffers=1 max-size-bytes=0 max-size-time=0 !
 nvv4l2h264enc maxperf-enable=1 preset-level=1 control-rate=1 bitrate=4000000 \
               iframeinterval=10 idrinterval=1 insert-sps-pps=true EnableTwopassCBR=1 \
 ! rtph264pay pt=96 config-interval=1 mtu=1200 \
