@@ -1,24 +1,23 @@
-version: "3.8"
-
 services:
   rossensor:
     image: ros1
     container_name: ros
-    runtime: nvidia
-    gpus: all
     privileged: true
+    runtime: nvidia
     network_mode: "host"
     init: true
     ipc: host
     environment:
       - DISPLAY=${DISPLAY}
-      - XAUTHORITY=${XAUTHORITY}
       - QT_X11_NO_MITSHM=1
       - NVIDIA_VISIBLE_DEVICES=all
       - NVIDIA_DRIVER_CAPABILITIES=all
+      # === ROS 네트워킹 고정 (중요) ===
+      - ROS_MASTER_URI=http://192.168.55.1:11311
+      - ROS_IP=192.168.55.1
+      # ROS_HOSTNAME는 쓰지 마세요 (해석 문제 방지)
     volumes:
-      - /tmp/.X11-unix:/tmp/.X11-unix:ro
-      - ${XAUTHORITY:-/home/mapping/.Xauthority}:/root/.Xauthority:ro
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
       - /home/mapping/ros1_ws/jetson_sensor/:/ros_noetic/mapping_ws/
       - /home/mapping/rosbag:/data
       - /mnt/ssd:/data2
@@ -27,3 +26,4 @@ services:
     tty: true
     stdin_open: true
     restart: unless-stopped
+

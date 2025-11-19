@@ -1,6 +1,6 @@
 <launch>
     <!-- lidar driver -->
-     <include file="$(find ouster_ros)/launch/driver.launch">
+     <!--<include file="$(find ouster_ros)/launch/driver.launch">
         <arg name="ouster_ns" value="hrz" />
         <arg name="tf_prefix" value="hrz" />
         <arg name="viz" value="false" />
@@ -9,7 +9,7 @@
         <arg name="lidar_port" value="7502" />
         <arg name="imu_port" value="7503" />
         <arg name="lidar_mode" value="1024x10" />
-    </include>
+    </include>-->
 
     <!-- lidar driver -->
     <!--<include file="$(find ouster_ros)/launch/driver.launch">
@@ -25,9 +25,9 @@
     </include>-->
 
     <!-- imu driver -->
-     <include file="$(find microstrain_inertial_driver)/launch/microstrain.launch">
+     <!--<include file="$(find microstrain_inertial_driver)/launch/microstrain.launch">
         <arg name="params_file" value="$(find microstrain_inertial_examples)/config/cv7/cv7.yml" />
-     </include>
+     </include>-->
     
     <!-- camera -->
     <include file="$(find gstreamer_camera_wrapper)/launch/gstreamer_camera.launch" />

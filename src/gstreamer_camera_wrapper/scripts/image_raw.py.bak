@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import cv2, threading, ctypes, rospy, yaml, numpy as np
-from sensor_msgs.msg import CompressedImage, CameraInfo
+from sensor_msgs.msg import Image, CameraInfo
 from cv_bridge import CvBridge
 
 # XInitThreads
@@ -12,37 +12,45 @@ pipelines = [
     'udpsrc port=7777 buffer-size=4194304 '
     'caps="application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000,packetization-mode=1" ! '
     'rtpjitterbuffer latency=120 drop-on-late=true ! '
-    'rtph264depay ! h264parse config-interval=-1 ! '
+    'rtph264depay ! '
+    'h264parse config-interval=-1 ! '
     'video/x-h264,stream-format=byte-stream,alignment=au ! '
-    'nvv4l2decoder disable-dpb=true ! nvvidconv ! '
-    'video/x-raw,format=BGRx ! videoconvert ! video/x-raw,format=BGR ! '
+    'nvv4l2decoder disable-dpb=true ! '
+    'nvvidconv ! video/x-raw,format=BGRx ! '
+    'videoconvert ! video/x-raw,format=BGR ! '
     'appsink emit-signals=true sync=false max-buffers=2 drop=true',
 
     'udpsrc port=7778 buffer-size=4194304 '
     'caps="application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000,packetization-mode=1" ! '
     'rtpjitterbuffer latency=120 drop-on-late=true ! '
-    'rtph264depay ! h264parse config-interval=-1 ! '
+    'rtph264depay ! '
+    'h264parse config-interval=-1 ! '
     'video/x-h264,stream-format=byte-stream,alignment=au ! '
-    'nvv4l2decoder disable-dpb=true ! nvvidconv ! '
-    'video/x-raw,format=BGRx ! videoconvert ! video/x-raw,format=BGR ! '
+    'nvv4l2decoder disable-dpb=true ! '
+    'nvvidconv ! video/x-raw,format=BGRx ! '
+    'videoconvert ! video/x-raw,format=BGR ! '
     'appsink emit-signals=true sync=false max-buffers=2 drop=true',
 
     'udpsrc port=7779 buffer-size=4194304 '
     'caps="application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000,packetization-mode=1" ! '
     'rtpjitterbuffer latency=120 drop-on-late=true ! '
-    'rtph264depay ! h264parse config-interval=-1 ! '
+    'rtph264depay ! '
+    'h264parse config-interval=-1 ! '
     'video/x-h264,stream-format=byte-stream,alignment=au ! '
-    'nvv4l2decoder disable-dpb=true ! nvvidconv ! '
-    'video/x-raw,format=BGRx ! videoconvert ! video/x-raw,format=BGR ! '
+    'nvv4l2decoder disable-dpb=true ! '
+    'nvvidconv ! video/x-raw,format=BGRx ! '
+    'videoconvert ! video/x-raw,format=BGR ! '
     'appsink emit-signals=true sync=false max-buffers=2 drop=true',
 
     'udpsrc port=7780 buffer-size=4194304 '
     'caps="application/x-rtp,media=video,encoding-name=H264,payload=96,clock-rate=90000,packetization-mode=1" ! '
     'rtpjitterbuffer latency=120 drop-on-late=true ! '
-    'rtph264depay ! h264parse config-interval=-1 ! '
+    'rtph264depay ! '
+    'h264parse config-interval=-1 ! '
     'video/x-h264,stream-format=byte-stream,alignment=au ! '
-    'nvv4l2decoder disable-dpb=true ! nvvidconv ! '
-    'video/x-raw,format=BGRx ! videoconvert ! video/x-raw,format=BGR ! '
+    'nvv4l2decoder disable-dpb=true ! '
+    'nvvidconv ! video/x-raw,format=BGRx ! '
+    'videoconvert ! video/x-raw,format=BGR ! '
     'appsink emit-signals=true sync=false max-buffers=2 drop=true',
 ]
 
@@ -59,15 +67,14 @@ def load_camera_info(yaml_file):
     ci.distortion_model = calib['distortion_model']
     return ci
 
-def publish_stream_compressed(index, pipeline, img_pub, info_pub, camera_info):
+def publish_stream_raw(index, pipeline, img_pub, info_pub, camera_info):
     cap = cv2.VideoCapture(pipeline, cv2.CAP_GSTREAMER)
     if not cap.isOpened():
         rospy.logerr(f"[cam{index}] GStreamer 파이프라인 open 실패")
         return
 
     bridge = CvBridge()
-    rospy.loginfo(f"[cam{index}] RTP 수신 시작 (compressed publish)")
-    jpeg_quality = 100  # 60~80 권장
+    rospy.loginfo(f"[cam{index}] RTP 수신 시작 (raw publish)")
 
     while not rospy.is_shutdown():
         ok, frame = cap.read()
@@ -75,23 +82,16 @@ def publish_stream_compressed(index, pipeline, img_pub, info_pub, camera_info):
             rospy.logwarn_throttle(2.0, f"[cam{index}] 프레임 읽기 실패")
             continue
 
+        # 프레임 크기와 CameraInfo 불일치시 width/height만 동기화 (K/D는 원본 유지)
         h, w = frame.shape[:2]
         if (camera_info.width != w) or (camera_info.height != h):
             camera_info.width = w
             camera_info.height = h
 
-        # JPEG 압축
-        ret, buf = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality])
-        if not ret:
-            rospy.logwarn_throttle(2.0, f"[cam{index}] JPEG 인코딩 실패")
-            continue
-
         now = rospy.Time.now()
-        msg = CompressedImage()
+        msg = bridge.cv2_to_imgmsg(frame, encoding="bgr8")
         msg.header.stamp = now
         msg.header.frame_id = f"camera_{index}_frame"
-        msg.format = "jpeg"
-        msg.data = np.array(buf).tobytes()
         img_pub.publish(msg)
 
         camera_info.header.stamp = now
@@ -101,25 +101,24 @@ def publish_stream_compressed(index, pipeline, img_pub, info_pub, camera_info):
     cap.release()
 
 def main():
-    rospy.init_node("gstreamer_camera_wrapper_compressed")
+    rospy.init_node("gstreamer_camera_wrapper_raw_norect")
     img_pubs, info_pubs, infos = [], [], []
     for i in range(len(pipelines)):
         yaml_file = f"/ros_noetic/mapping_ws/src/gstreamer_camera_wrapper/configs/calibration_{i}.yaml"
-        ci = load_camera_info(yaml_file)
-        infos.append(ci)
-        img_pubs.append(rospy.Publisher(f"/camera_{i}/image_raw/compressed", CompressedImage, queue_size=1))
+        ci = load_camera_info(yaml_file); infos.append(ci)
+        img_pubs.append(rospy.Publisher(f"/camera_{i}/image_raw", Image, queue_size=1))
         info_pubs.append(rospy.Publisher(f"/camera_{i}/camera_info", CameraInfo, queue_size=1))
 
     threads = []
     for i, pipe in enumerate(pipelines):
-        t = threading.Thread(target=publish_stream_compressed,
+        t = threading.Thread(target=publish_stream_raw,
                              args=(i, pipe, img_pubs[i], info_pubs[i], infos[i]),
                              daemon=True)
         t.start(); threads.append(t)
 
     rospy.spin()
-    for t in threads:
-        t.join()
+    for t in threads: t.join()
 
 if __name__ == "__main__":
     main()
+
