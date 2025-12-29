@@ -20,8 +20,7 @@ services:
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
       - ${XAUTHORITY:-/home/mapping/.Xauthority}:/root/.Xauthority:ro
       - /home/mapping/ros1_ws/jetson_sensor/:/ros_noetic/mapping_ws/
-      - /home/mapping/rosbag:/data
-      - /mnt/ssd:/data2
+      - /media/mapping/datassd3:/data
       - /dev/:/dev/
     working_dir: /ros_noetic/mapping_ws/
     tty: true

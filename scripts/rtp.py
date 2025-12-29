@@ -31,7 +31,7 @@ queue leaky=downstream max-size-buffers=1 max-size-bytes=0 max-size-time=0 !
 nvvidconv !
 video/x-raw(memory:NVMM),format=I420,width=1920,height=1200,framerate=10/1 !
 queue leaky=downstream max-size-buffers=1 max-size-bytes=0 max-size-time=0 !
-nvv4l2h264enc maxperf-enable=1 preset-level=1 control-rate=1 bitrate=12000000 \
+nvv4l2h264enc maxperf-enable=1 preset-level=1 control-rate=1 bitrate=20000000 \
               iframeinterval=10 idrinterval=1 insert-sps-pps=true EnableTwopassCBR=1 \
 ! rtph264pay pt=96 config-interval=1 mtu=1200 \
 ! udpsink host={host} port={port} sync=false async=false qos=false

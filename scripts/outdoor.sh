@@ -2,6 +2,9 @@
 set -e  # 오류 발생 시 즉시 종료
 
 
+./cam_setting_outdoor.sh
+
+sleep 0.5
 
 #python3 /home/mapping/workspaces/mapping_robot/scripts/rtp.py &
 python3 /ros_noetic/mapping_ws/scripts/rtp.py &
