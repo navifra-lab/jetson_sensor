@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>gstreamer_camera_wrapper</name>
+  <version>0.1.0</version>
+  <description>ROS wrapper for GStreamer-based camera streaming with intrinsic calibration.</description>
+
+  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <license>BSD</license>
+
+  <!-- 빌드 도구 의존성 -->
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <!-- 런타임 및 빌드 의존성 -->
+  <depend>rospy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>cv_bridge</depend>
+  <depend>image_transport</depend>
+  <depend>camera_info_manager</depend>
+
+  <export>
+    <build_type>catkin</build_type>
+  </export>
+</package>

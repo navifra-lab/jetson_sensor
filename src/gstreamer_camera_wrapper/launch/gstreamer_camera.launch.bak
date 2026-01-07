@@ -1,0 +1,3 @@
+<launch>
+  <node name="gstreamer_camera_wrapper" pkg="gstreamer_camera_wrapper" type="gstreamer_opencv_multi.py" output="screen"/>
+</launch>

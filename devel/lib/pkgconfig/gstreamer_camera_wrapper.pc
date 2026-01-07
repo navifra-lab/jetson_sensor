@@ -2,7 +2,7 @@ prefix=/ros_noetic/mapping_ws/devel
 
 Name: gstreamer_camera_wrapper
 Description: Description of gstreamer_camera_wrapper
-Version: 0.1.0
+Version: 0.0.1
 Cflags: 
 Libs: -L${prefix}/lib 
-Requires: rospy sensor_msgs cv_bridge image_transport camera_info_manager
+Requires: roscpp sensor_msgs

@@ -1,3 +1,38 @@
 <launch>
-  <node name="gstreamer_camera_wrapper" pkg="gstreamer_camera_wrapper" type="gstreamer_opencv_multi.py" output="screen"/>
+  <!-- =========================
+       Parameters (editable)
+       ========================= -->
+  <!-- RTP base port (cam0=base, cam1=base+1, ...) -->
+  <arg name="base_port" default="7777" />
+
+  <!-- Number of cameras -->
+  <arg name="num_cams" default="4" />
+
+  <!-- RTP jitterbuffer latency in ms (real-time: 0~50 권장) -->
+  <arg name="latency_ms" default="30" />
+
+  <!-- Camera calibration yaml directory -->
+  <arg name="calib_dir" default="/ros_noetic/mapping_ws/src/gstreamer_camera_wrapper/configs" />
+
+  <!-- Node name -->
+  <arg name="node_name" default="gstreamer_camera_wrapper_h264" />
+
+  <!-- =========================
+       Node
+       ========================= -->
+  <node
+    name="$(arg node_name)"
+    pkg="gstreamer_camera_wrapper"
+    type="gstreamer_camera_wrapper_h264_cpp"
+    output="screen"
+    respawn="false">
+
+    <!-- private params (~param) -->
+    <param name="base_port"  value="$(arg base_port)" />
+    <param name="num_cams"   value="$(arg num_cams)" />
+    <param name="latency_ms" value="$(arg latency_ms)" />
+    <param name="calib_dir"  value="$(arg calib_dir)" />
+
+  </node>
 </launch>
+
