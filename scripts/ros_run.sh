@@ -1,22 +1,47 @@
 #!/bin/bash
-set -e  # 오류 발생 시 즉시 종료
 
-
-
-#python3 /home/mapping/workspaces/mapping_robot/scripts/rtp.py &
-python3 /ros_noetic/mapping_ws/scripts/rtp.py &
-RTP_PID=$!
-echo $RTP_PID > /tmp/rtp_pid.txt
-echo "rtp.py started with PID $RTP_PID"
-
-
-# ROS 환경 설정
-#source /opt/ros/noetic/setup.bash
+# 1. 환경 설정
 source /ros_noetic/mapping_ws/devel/setup.bash
 
-# ROS 패키지 실행 예시 (원하는 명령으로 바꾸세요)
+# ========================================================
+# 2. 종료(Ctrl+C) 시그널 처리 함수 (안전장치)
+# ========================================================
+cleanup() {
+    echo ""
+    echo "[Shell] 종료 신호 감지! 카메라 녹화를 안전하게 종료합니다..."
+    
+    # 아까 기억해둔 카메라 프로세스(PID)에 종료 신호 전송
+    if [ -n "$CAM_PID" ]; then
+        kill -SIGINT "$CAM_PID"
+        # 파이썬 스크립트가 파일 저장을 마칠 때까지 잠시 대기
+        wait "$CAM_PID"
+    fi
+    
+    echo "[Shell] 모든 프로세스가 종료되었습니다."
+    exit
+}
+
+# Ctrl+C(SIGINT)가 들어오면 위 cleanup 함수를 실행하도록 '덫(trap)'을 놓음
+trap cleanup SIGINT
+
+# ========================================================
+# 3. 카메라 녹화 스크립트 실행 (백그라운드)
+# ========================================================
+# 주의: test.py의 실제 경로를 정확히 적어주세요!
+echo "[Shell] 카메라 녹화(test.py)를 시작합니다..."
+python3 test.py &
+
+# 방금 실행한 프로세스의 ID(PID)를 변수에 저장 ($!)
+CAM_PID=$!
+
+# 카메라가 초기화될 시간을 잠깐 줌 (1~2초)
+sleep 2
+
+# ========================================================
+# 4. ROS Launch 실행 (메인)
+# ========================================================
+echo "[Shell] ROS 센서 드라이버를 시작합니다..."
 roslaunch /ros_noetic/mapping_ws/launch/sensor.launch
 
-# 개발용으로 bash 유지
-#exec bash
-
+# roslaunch가 끝날 때까지 대기 (이 줄이 없으면 스크립트가 바로 꺼짐)
+wait

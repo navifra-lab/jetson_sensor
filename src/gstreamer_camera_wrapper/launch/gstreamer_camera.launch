@@ -6,7 +6,7 @@
   <arg name="base_port" default="7777" />
 
   <!-- Number of cameras -->
-  <arg name="num_cams" default="4" />
+  <arg name="num_cams" default="6" />
 
   <!-- RTP jitterbuffer latency in ms (real-time: 0~50 권장) -->
   <arg name="latency_ms" default="30" />

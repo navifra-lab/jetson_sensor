@@ -1,10 +1,9 @@
 #include <ros/ros.h>
 #include <sensor_msgs/CompressedImage.h>
 #include <sensor_msgs/CameraInfo.h>
-
+#include <yaml-cpp/yaml.h>
 #include <gst/gst.h>
 #include <gst/app/gstappsink.h>
-
 #include <thread>
 #include <atomic>
 #include <vector>
@@ -12,39 +11,34 @@
 #include <cstring>
 #include <memory>
 #include <filesystem>
-#include <mutex>
-#include <cmath>
+#include <chrono>
 
 namespace fs = std::filesystem;
 
-// =========================================================
-// [전역 변수] 모든 카메라가 공유하는 "동기화 윈도우"
-// =========================================================
-static std::mutex g_sync_mutex;
-static ros::Time g_current_batch_timestamp;   // 현재 프레임 그룹의 확정된 시간
-static ros::Time g_last_arrival_time;         // 마지막으로 리더가 도착한 실제 시간
-static bool g_is_first_frame = true;          // 첫 프레임 여부
+static sensor_msgs::CameraInfo loadCameraInfo(const std::string& yaml_file) {
+    sensor_msgs::CameraInfo ci;
+    // (YAML 파싱 로직 필요시 추가)
+    return ci;
+}
 
 class ShmWorker {
 public:
     ShmWorker(int index,
               const std::string& socket_path,
-              const sensor_msgs::CameraInfo& cam_info, // cam_info 인자 유지
+              const sensor_msgs::CameraInfo& cam_info,
               ros::NodeHandle& nh)
         : index_(index),
           socket_path_(socket_path),
           running_(false),
-          cam_info_(cam_info) // 초기화
+          cam_info_(cam_info),
+          time_synced_(false),
+          base_gst_pts_(0)
     {
         img_pub_ = nh.advertise<sensor_msgs::CompressedImage>(
             "/camera_" + std::to_string(index_) + "/image_raw/h264", 1);
 
         info_pub_ = nh.advertise<sensor_msgs::CameraInfo>(
             "/camera_" + std::to_string(index_) + "/camera_info", 1);
-            
-        // 해상도 강제 설정
-        cam_info_.width = 1920;
-        cam_info_.height = 1200;
     }
 
     ~ShmWorker() { stop(); }
@@ -52,7 +46,7 @@ public:
     bool start() {
         if (running_) return true;
 
-        // [소켓 대기]
+        // 소켓 대기
         ros::Rate wait_rate(5);
         int wait_count = 0;
         while (ros::ok() && !fs::exists(socket_path_) && wait_count < 100) {
@@ -60,8 +54,13 @@ public:
             wait_count++;
             if (wait_count % 10 == 0) ROS_WARN("[cam%d] Waiting for socket...", index_);
         }
-        if (!fs::exists(socket_path_)) return false;
 
+        if (!fs::exists(socket_path_)) {
+            ROS_ERROR("[cam%d] Timeout! Socket not found.", index_);
+            return false;
+        }
+
+        // [파이프라인]
         const std::string pipeline =
             "shmsrc socket-path=" + socket_path_ + " is-live=true ! "
             "h264parse ! "
@@ -70,7 +69,10 @@ public:
 
         GError* err = nullptr;
         pipeline_ = gst_parse_launch(pipeline.c_str(), &err);
-        if (!pipeline_) return false;
+        if (!pipeline_) {
+            ROS_ERROR("[cam%d] Gst Error: %s", index_, err->message);
+            return false;
+        }
 
         GstElement* sink = gst_bin_get_by_name(GST_BIN(pipeline_), "appsink");
         appsink_ = GST_APP_SINK(sink);
@@ -83,7 +85,7 @@ public:
 
         running_ = true;
         th_ = std::thread(&ShmWorker::loop, this);
-        ROS_INFO("[cam%d] Started (Method E: Window Grouping)", index_);
+        ROS_INFO("[cam%d] SHM Started (Hardware Sync Mode)", index_);
         return true;
     }
 
@@ -99,7 +101,6 @@ public:
 private:
     void loop() {
         const guint64 timeout_ns = 100000000ULL; 
-        const double frame_interval = 1.0 / 30.0; // 0.033333...
 
         while (running_ && ros::ok()) {
             GstSample* sample = gst_app_sink_try_pull_sample(appsink_, timeout_ns);
@@ -108,47 +109,25 @@ private:
             GstBuffer* buffer = gst_sample_get_buffer(sample);
             if (!buffer) { gst_sample_unref(sample); continue; }
 
-            ros::Time now = ros::Time::now();
+            // [정석 타임스탬프 동기화: Base + Diff]
+            // 하드웨어 싱크 덕분에 PTS 간격이 정확히 33ms로 들어옵니다.
+            guint64 current_pts = GST_BUFFER_PTS(buffer);
             ros::Time stamp;
 
-            // =========================================================
-            // [Method E: 윈도우 그룹핑 & 33ms 강제]
-            // =========================================================
-            {
-                std::lock_guard<std::mutex> lock(g_sync_mutex);
-
-                // 최근 리더 도착 시간과 현재 시간의 차이 계산
-                double diff = (now - g_last_arrival_time).toSec();
-
-                // 1. 같은 그룹인가? (15ms 이내에 도착했으면 같은 프레임으로 간주)
-                if (!g_is_first_frame && diff < 0.020) { 
-                    // 늦게 온 카메라는 리더가 정해둔 시간을 그대로 씀 (복사)
-                    stamp = g_current_batch_timestamp;
-                } 
-                // 2. 새로운 그룹(새 프레임)의 리더인가?
-                else {
-                    if (g_is_first_frame) {
-                        // 프로그램 켜고 첫 프레임: 현재 시간으로 초기화
-                        g_current_batch_timestamp = now;
-                        g_is_first_frame = false;
-                    } else {
-                        // 두 번째 프레임부터: 무조건 이전 시간 + 33.33ms
-                        // (실제 도착 시간이 흔들려도 무시하고 33ms를 더함)
-                        g_current_batch_timestamp += ros::Duration(frame_interval);
-                        
-                        // (안전장치) 시스템이 멈췄다가 다시 켜진 경우(1초 이상 지연), 현재 시간으로 리셋
-                        if (diff > 1.0) {
-                             g_current_batch_timestamp = now;
-                             ROS_WARN("[Sync] Time drift detected, resetting base time.");
-                        }
-                    }
-                    
-                    // 리더 정보 갱신
-                    g_last_arrival_time = now;
-                    stamp = g_current_batch_timestamp;
+            if (GST_CLOCK_TIME_IS_VALID(current_pts)) {
+                if (!time_synced_) {
+                    base_ros_time_ = ros::Time::now();
+                    base_gst_pts_ = current_pts;
+                    time_synced_ = true;
+                    stamp = base_ros_time_;
+                } else {
+                    // 기준점으로부터 흐른 시간(Diff)을 그대로 적용
+                    guint64 diff_ns = current_pts - base_gst_pts_;
+                    stamp = base_ros_time_ + ros::Duration(diff_ns / 1e9);
                 }
+            } else {
+                stamp = ros::Time::now();
             }
-            // =========================================================
 
             GstMapInfo map;
             gst_buffer_map(buffer, &map, GST_MAP_READ);
@@ -164,7 +143,7 @@ private:
             gst_sample_unref(sample);
 
             img_pub_.publish(msg);
-            
+
             sensor_msgs::CameraInfo ci = cam_info_;
             ci.header.stamp = stamp;
             ci.header.frame_id = msg.header.frame_id;
@@ -182,38 +161,34 @@ private:
     sensor_msgs::CameraInfo cam_info_;
     GstElement* pipeline_{nullptr};
     GstAppSink* appsink_{nullptr};
+    bool time_synced_;
+    ros::Time base_ros_time_;
+    guint64 base_gst_pts_;
 };
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "gst_shm_wrapper_final_sync");
+    ros::init(argc, argv, "gst_shm_wrapper_final");
     ros::NodeHandle nh("~");
     gst_init(&argc, &argv);
 
     int num_cams = 6;
     nh.param("num_cams", num_cams, num_cams);
-    
-    // [파라미터 로드 예시] - 필요 없다면 제거 가능
-    std::string calib_dir;
-    nh.param<std::string>("calib_dir", calib_dir, "");
 
     std::vector<std::unique_ptr<ShmWorker>> workers;
     workers.reserve(num_cams);
 
-    // 전역 변수 초기화
-    g_is_first_frame = true;
-
-    ROS_INFO("=== Final Method E: Window Grouping Sync Started ===");
+    ROS_INFO("=== Final Wrapper Started (Hardware 30Hz) ===");
 
     for (int i = 0; i < num_cams; ++i) {
-        sensor_msgs::CameraInfo ci;
+        sensor_msgs::CameraInfo ci; 
         ci.width = 1920; ci.height = 1200;
-        
         std::string socket_path = "/tmp/cam" + std::to_string(i);
+        
         workers.emplace_back(new ShmWorker(i, socket_path, ci, nh));
         workers.back()->start();
     }
 
-    ros::AsyncSpinner spinner(8); 
+    ros::AsyncSpinner spinner(6); 
     spinner.start();
     ros::waitForShutdown();
 
