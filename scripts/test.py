@@ -86,12 +86,15 @@ def create_pipeline(cam_id):
     pipeline_str = (
         f"nvv4l2camerasrc device={device} do-timestamp=true name=src{cam_id} ! "
         f"video/x-raw(memory:NVMM), width={WIDTH}, height={HEIGHT}, format=UYVY, framerate={FPS}/1 ! "
+        f"queue max-size-buffers=30 ! "  # 캡처 버퍼 (약 1초 대기열)
         f"nvvidconv ! "
         f"video/x-raw(memory:NVMM), format=NV12 ! "
+        f"queue max-size-buffers=30 ! "  # 인코딩 대기열
         f"nvv4l2h265enc bitrate={BITRATE} control-rate=1 preset-level=1 "
         f"iframeinterval={FPS} idrinterval={FPS} insert-sps-pps=true EnableTwopassCBR=0 ! "
         f"h265parse ! matroskamux ! "
-        f"filesink location={filename_video} sync=false"
+        f"queue max-size-buffers=60 ! "  # 파일 I/O 대기열 (디스크 지연 방지)
+        f"filesink location={filename_video} async=false"
     )
     
     return Gst.parse_launch(pipeline_str)
